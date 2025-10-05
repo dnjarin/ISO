@@ -1,4 +1,3 @@
-// archivo: server.js
 const http = require('http');
 
 let a = 0, b = 1;
