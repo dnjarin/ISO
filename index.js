@@ -1,52 +1,76 @@
-// archivo: server.js
 const http = require('http');
 
-let a = 0, b = 1; // Variables para Fibonacci
+let a = 0, b = 1;
 
-const server = http.createServer((req, res) => {
-  if (req.url === '/metodos') {
-    // Devuelve un objeto diferente según el método
-    let respuesta;
-    switch (req.method) {
-      case 'GET':
-        respuesta = { mensaje: 'Respuesta GET' };
-        break;
-      case 'POST':
-        respuesta = { mensaje: 'Respuesta POST' };
-        break;
-      case 'PUT':
-        respuesta = { mensaje: 'Respuesta PUT' };
-        break;
-      case 'DELETE':
-        respuesta = { mensaje: 'Respuesta DELETE' };
-        break;
-      default:
-        respuesta = { error: 'Método no soportado' };
+// --- Funciones ---
+function manejarMetodos(req) {
+  switch (req.method) {
+    case 'GET': return { mensaje: 'Respuesta a GET' };
+    case 'POST': return { mensaje: 'Respuesta a POST' };
+    case 'PUT': return { mensaje: 'Respuesta a PUT' };
+    case 'DELETE': return { mensaje: 'Respuesta a DELETE' };
+    default: return { error: 'Método no soportado' };
+  }
+}
+
+function numeroAleatorio() {
+  return { numero: Math.floor(Math.random() * 100) + 1 };
+}
+
+function siguienteFibonacci() {
+  const siguiente = a;
+  [a, b] = [b, a + b];
+  return { fibonacci: siguiente };
+}
+
+function paginaInicio() {
+  return {
+    mensaje: 'Bienvenido al servidor Node.js de la Unidad 1',
+    rutas: {
+      '/metodos': 'Devuelve diferentes objetos según el método HTTP (GET, POST, PUT, DELETE)',
+      '/aleatorio': 'Devuelve un número entero aleatorio',
+      '/fibonacci': 'Devuelve el siguiente número de la secuencia de Fibonacci',
     }
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(respuesta));
+  };
+}
 
-  } else if (req.url === '/aleatorio') {
-    // Devuelve un número aleatorio
-    const numero = Math.floor(Math.random() * 100) + 1;
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ numero }));
+// --- Servidor ---
+const server = http.createServer((req, res) => {
+  try {
+    if (req.url === '/') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(paginaInicio()));
 
-  } else if (req.url === '/fibonacci') {
-    // Devuelve el siguiente número de Fibonacci
-    const siguiente = a;
-    [a, b] = [b, a + b];
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ fibonacci: siguiente }));
+    } else if (req.url === '/metodos') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(manejarMetodos(req)));
 
-  } else {
-    // Cualquier otra ruta → 404
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Ruta no encontrada' }));
+    } else if (req.url === '/aleatorio') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(numeroAleatorio()));
+
+    } else if (req.url === '/fibonacci') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(siguienteFibonacci()));
+
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Ruta no encontrada' }));
+    }
+
+  } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Error interno del servidor', detalle: err.message }));
   }
 });
 
-server.listen(3000, () => {
-  console.log('Servidor en http://localhost:3000');
-  console.log('Rutas: /metodos, /aleatorio, /fibonacci');
+// --- Iniciar servidor ---
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log('Rutas disponibles:');
+  console.log('  [GET,POST,PUT,DELETE] /metodos');
+  console.log('  GET /aleatorio');
+  console.log('  GET /fibonacci');
+  console.log('  GET /');
 });
